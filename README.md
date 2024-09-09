@@ -3,7 +3,7 @@ Artifacts: ReACKed QUICer: Measuring the Performance of Instant Acknowledgments 
 
 This repository contains the artifacts for the following paper:
 ```
-Artifacts: ReACKed QUICer: Measuring the Performance of Instant Acknowledgments in QUIC Handshakes
+ReACKed QUICer: Measuring the Performance of Instant Acknowledgments in QUIC Handshakes
 Proc. of ACM Internet Measurement Conference (IMC), Madrid: ACM, 2024
 https://doi.org/10.1145/3646547.3689022
 ```
@@ -30,9 +30,11 @@ Clone this repository, then:
 3. Activate python env: `source .venv/bin/activate`
 
 Now you can execute the existing notebooks with: 
+
 4. `make nbconverti-execute`
 
 Or if you want to do all preprocessing steps:
+
 4. `make data`
 
 For details or processing only a subset see `05-instant-ack-ccds/README.md`
