@@ -31,7 +31,7 @@ Clone this repository, then:
 
 Now you can execute the existing notebooks with: 
 
-4. `make nbconverti-execute`
+4. `make nbconvert-execute`
 
 Or if you want to do all preprocessing steps:
 
