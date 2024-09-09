@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>QUIC Interop Runner</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/flatly/bootstrap.min.css" integrity="sha384-qF/QmIAj5ZaYFAeQcrQ6bfVMAh4zZlrGwTPY7T/M+iTTLJqJBJjwwnsE5Y0mV7QK" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" integrity="sha512-TktJbycEG5Van9KvrSHFUcYOKBroD7QCYkEe73HAutODCw9QTFcvF6fuxioYM1h6THNudK1GjVidazj6EslK4A==" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script async src="https://analytics.seemann.io/script.js" data-website-id="32c427b0-bba6-4367-931f-f6d38ce26e9e"></script>
+</head>
+<body>
+  <a class="github-fork-ribbon" href="https://github.com/quic-interop/quic-interop-runner" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a href="https://github.com/quic-interop/quic-interop-runner">
+      <span class="navbar-brand">
+        <img src="https://github.com/quicwg/wg-materials/raw/main/badge/transparent/QUIC-Badge-Dark-RGB-Horiz.svg" height="45" class="d-inline-block align-middle" alt="QUIC" loading="lazy">
+        Interop Runner
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <div class="navbar-text px-4">
+            <span class="font-weight-bold">Run:</span><br>
+            <span id="available-runs"></span>
+        </div>
+        <div class="navbar-text start-time px-4">
+          <span class="font-weight-bold">Start Time:</span><br>
+          <span id="lastrun-start"></span>
+        </div>
+        <div class="navbar-text duration px-4">
+          <span class="font-weight-bold">Duration:</span><br>
+          <span id="duration"></span>
+        </div>
+        <div class="navbar-text end-time px-4">
+          <span class="font-weight-bold">End Time:</span><br>
+          <span id="lastrun-end"></span>
+        </div>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+
+    <h3 class="mt-5">About</h3>
+    <p>
+      This page documents the current interop status of various <a href="https://quicwg.org/">QUIC</a> client and server <a href="https://github.com/quicwg/base-drafts/wiki/Implementations">implementations</a> that have chosen to participate in this automated testing. It is updated several times per day; older results can be accessed via the "Run" selector in the title bar. 
+    </p>
+
+    <p>
+      In the following tables, results for <strong>client implementations</strong> are shown <em>horizontally</em>, results for <strong>server implementations</strong> are shown <em>vertically</em>. The results were obtained with QUIC version <span id="quic-vers"></span>.
+    </p>
+
+    <p>
+      It is straightforward to add <strong>your implementation</strong> to this automated testing effort; please <a href="https://github.com/quic-interop/quic-interop-runner/blob/master/README.md#building-a-quic-endpoint">see these simple instructions</a>.
+    </p>
+
+    <div class="sponsor alert alert-dark">
+      <p>
+        If you find the QUIC Interop Runner useful, please consider sponsoring this project.<br>
+        Keeping the QUIC Interop Runner running incurs monthly costs for storage and bandwidth, as well as regular maintenance work.
+      </p>
+
+      <a href="https://github.com/sponsors/marten-seemann" class="btn btn-light github-sponsor-btn" role="button" target="_blank">
+        <i class="fa fa-github"></i> Sponsor
+      </a>
+    </div>
+
+    <h3 class="mt-5">Results Filter</h3>
+
+    <div class="mt-2 row">
+      <div class="col-2 col-sm-1">Client:</div>
+      <div id="client" class="col-10 col-sm-11 btn-group flex-wrap btn-group-sm" role="group" aria-label="Filter client implementations"></div>
+    </div>
+
+    <div class="mt-2 row">
+      <div class="col-2 col-sm-1">Server:</div>
+      <div id="server" class="col-10 col-sm-11 btn-group flex-wrap btn-group-sm" role="group" aria-label="Filter server implementations"></div>
+    </div>
+
+    <div class="mt-2 row">
+      <div class="col-2 col-sm-1">Test:</div>
+      <div id="test" class="col-10 col-sm-11 btn-group flex-wrap btn-group-sm" role="group" aria-label="Filter test cases"></div>
+    </div>
+
+    <h3 class="mt-5">Interop Status</h3>
+    <table id="interop" class="result table text-center"></table>
+
+    <h3 class="mt-5">Measurement Results</h3>
+    <table id="measurements" class="result table text-center"></table>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+  <script src="script.js"></script>
+</body>
+</html>
