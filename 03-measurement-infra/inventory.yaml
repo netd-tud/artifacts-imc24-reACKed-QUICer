@@ -1,0 +1,62 @@
+vms: 
+  vars:
+    ansible_become_password: '{{ local_machine_password }}'
+  children: 
+    research_net_vms:
+      hosts:
+        172.26.63.201:
+        172.26.63.237:
+        172.26.63.207:
+        172.26.63.213:
+        172.26.123.185:
+        172.26.63.137:
+        172.26.63.140:
+        172.26.63.141:
+        172.26.63.149:
+        172.26.63.154:
+        172.26.63.156:
+        172.26.63.158:
+        172.26.63.165:
+    research_net_vms_rem:
+      hosts: 
+        172.26.123.201:
+        172.26.123.202:
+        172.26.123.203:
+        172.26.123.204:
+        172.26.123.205:
+macroscopic_measurement: 
+  hosts: 
+    141.22.28.246: # HAW Hamburg
+      ansible_user: localadmin
+      ansible_become_password: '{{vm_pass}}'
+    35.215.103.71: # Los Angeles
+    35.215.210.101: # Sao Paulo
+    35.215.156.22: # Hongkong
+
+cloudflare_measurement:
+  vars: 
+    ansible_become_password:  '{{vm_pass}}'
+    measurement_interface: ens4
+    ansible_user: jonas
+  hosts: 
+    141.22.28.238: # HAW Hamburg
+      ansible_user: localadmin
+      measurement_interface: enp1s0
+    35.215.223.111: # Sao Paulo
+    35.215.180.3: # Hongkong
+    35.215.86.153: # Los Angeles
+
+    
+cloudflare_measurement_3600:
+  vars: 
+    ansible_become_password:  '{{vm_pass}}'
+    measurement_interface: ens4
+    ansible_user: jonas
+  hosts: 
+    141.22.28.196:
+      ansible_user: muecke
+      measurement_interface: enp1s0
+    35.215.231.10: # Sao Paulo
+    35.215.136.69: # Hongkong
+    35.215.65.101: # Los Angeles
+

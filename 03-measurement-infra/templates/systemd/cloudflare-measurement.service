@@ -1,0 +1,10 @@
+[Unit]
+Description=cloudflare-measurement
+
+[Service]
+Restart=no
+Type=oneshot
+ExecStart={{qscanner_dir}}measurement.sh {{ measurement_interface }}
+WorkingDirectory={{qscanner_dir}}
+User=root
+

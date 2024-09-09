@@ -1,0 +1,63 @@
+- name: Prepare VMs to run interop 
+  hosts: vms
+  become: true
+  roles: 
+    - interop-runner-node
+- name: Prepare macroscopic measurements
+  hosts: macroscopic_measurement
+  become: true
+  roles: 
+    - qscanner-toplist-measurement
+- name: Prepare cloudflare measurements
+  hosts: macroscopic_measurement
+  become: true
+  vars:
+    qscanner_dir: '/data/qscanner/'
+  tasks:
+    - name: Qscanner-toplist-measurement
+      include_role:
+        name: qscanner-toplist-measurement
+- name: Prepare regular measurements
+  hosts: cloudflare_measurement:cloudflare_measurement_3600
+  roles:
+    - role: qscanner-toplist-measurement
+  become: true
+  vars:
+    qscanner_dir: '/data/qscanner-cloudflare/'
+  tasks:
+    - name: Qscanner cloudflare measurement
+      include_role:
+        name: qscanner-toplist-measurement
+    - name: Copy systemd service
+      ansible.builtin.template:
+        src: systemd/cloudflare-measurement.service
+        dest: /etc/systemd/system/cloudflare-measurement.service
+    - name: Copy systemd timer
+      ansible.builtin.template:
+        src: systemd/cloudflare-measurement.timer
+        dest: /etc/systemd/system/cloudflare-measurement.timer
+    # Timer shoudl be enabled manually
+    # systemctl start cloudflare-measurement.timer
+    - name: Daemon reload
+      ansible.builtin.systemd:
+        # name: cloudflare-measurement.timer
+        # enabled: yes
+        # state: started
+        daemon_reload: true
+- name: Prepare one measurement per 60s
+  hosts: cloudflare_measurement
+  become: true
+  tasks:
+    - name: Copy targets
+      ansible.builtin.copy:
+        src: files/targets60
+        dest: /data/qscanner-cloudflare/input-targets
+- name: Prepare one measurement per 60s
+  hosts: cloudflare_measurement_3600
+  become: true
+  tasks:
+    - name: Copy targets
+      ansible.builtin.copy:
+        src: files/targets3600
+        dest: /data/qscanner-cloudflare/input-targets
+

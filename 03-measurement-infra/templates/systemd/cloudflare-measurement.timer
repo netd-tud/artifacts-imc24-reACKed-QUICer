@@ -1,0 +1,11 @@
+[Unit]
+Description=zdns-collectors
+
+[Timer]
+OnCalendar=*-*-* *:*:0
+Persistent=true
+AccuracySec=15
+
+[Install]
+WantedBy=timers.target
+  

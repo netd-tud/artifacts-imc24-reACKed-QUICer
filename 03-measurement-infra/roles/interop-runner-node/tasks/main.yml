@@ -1,0 +1,154 @@
+- name: Set timezone
+  community.general.timezone:
+    name: UTC
+- name: Add repositories
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/fedora/$releasever/$basearch/stable"
+    gpgcheck: true
+    gpgkey: "https://download.docker.com/linux/fedora/gpg"
+- name: Install required software
+  ansible.builtin.dnf:
+    state: latest
+    name:
+      - vim
+      - tmux
+      - sshfs
+      - git
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - pip
+      - parallel
+      - make
+      - wireshark
+      - wireshark-cli
+      - wireshark-devel
+      - htop
+      - parted
+- name: Upgrade all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+- name: Add user to group docker
+  ansible.builtin.user:
+    append: true
+    groups: docker
+    name: jonas
+- name: Add control ssh key
+  authorized_key:
+    user: "jonas"
+    key: "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNXfjYPTyWFr0I15EiMKyNMU71I8ro6ax4X/pBMi+0na9+DW0PvFwUrHx3Y/tthVxIlMZplSDzm2kMeHLk3JpNI= jonas@vm-172-26-122-167.rc.test.tu-dresden.de"
+
+- name: Create partition
+  community.general.parted:
+    device: /dev/sdb
+    number: 1
+    state: present
+    fs_type: ext4
+- name: Create FS
+  community.general.filesystem:
+    fstype: ext4
+    dev: /dev/sdb1
+- name: Create mountpoint for data
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    owner: jonas
+    group: jonas
+- name: Mount /data
+  ansible.posix.mount:
+    boot: true
+    src: /dev/sdb1
+    path: /data
+    state: mounted
+    fstype: ext4
+- name: Create mountpoint for data
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    owner: jonas
+    group: jonas
+- name: Create mountpoint for research data
+  ansible.builtin.file:
+    path: /research-data
+    state: directory
+    owner: jonas
+    group: jonas
+- name: Disable selinux
+  ansible.posix.selinux:
+    state: disabled
+    update_kernel_param: true
+- name: Mount research data
+  ansible.posix.mount:
+    boot: true
+    src: //vs-sec-smb3.zih.tu-dresden.de/netdresdat/quic-instant-ack-data-jmuecke/raw
+    path: /research-data
+    opts: "rw,file_mode=0600,dir_mode=0700,dom=dom,username=jomu582f,password={{ ad_password }},gid=jonas,uid=jonas"
+    state: mounted
+    fstype: cifs
+- name: Add ssh key for access to repositories
+  ansible.builtin.copy:
+    src: files/id_interop_runner_1
+    dest: "/home/jonas/.ssh"
+    mode: '0600'
+    owner: jonas
+    group: jonas
+- name: Add ssh key for access to repositories
+  ansible.builtin.copy:
+    src: files/id_interop_runner_2
+    dest: "/home/jonas/.ssh"
+    mode: '0600'
+    owner: jonas
+    group: jonas
+- name: Accept github.com host keys
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "{{ item }}"
+  loop:
+    - github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+    - github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+    - github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+  become_user: jonas
+- name: Clone QIR
+  ansible.builtin.git:
+    repo: git@github.com:jmuecke/quic-interop-runner-instant-ack.git
+    dest: /data/quic-interop-runner-instant-ack
+    key_file: /home/jonas/.ssh/id_interop_runner_2
+  become_user: jonas
+  tags:
+    - debug
+- name: Enable docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+- name: Install python requirements
+  ansible.builtin.pip:
+    requirements: /data/quic-interop-runner-instant-ack/requirements.txt
+    executable: pip
+- name: Load required modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    persistent: present
+    state: present
+  loop:
+    - ip6table_filter
+    - iptable_filter
+- name: Transfer docker images
+  ansible.builtin.copy:
+    src: docker-images/
+    dest: docker-images
+  register: copy_images
+- name: Get all image names
+  ansible.builtin.find:
+    paths: docker-images/
+  register: images
+- name: Load docker images
+  ansible.builtin.command:
+    cmd: docker load -i "{{ item.path }}"
+  with_items: "{{ images.files }}"
+  when: copy_images.changed
